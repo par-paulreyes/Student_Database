@@ -6,30 +6,28 @@ using namespace std;
 const int MAX_STUDENTS = 50;
 const int MAX_SUBJECTS = 10;
 
-class Student
-{
+class Student {
 private:
     string name;
     int srcode;
     int numSubjects;
     string subjects[MAX_SUBJECTS];
+    Student* next;
 
 public:
-    void inputStudentData()
-    {
+    Student() : next(nullptr) {}
+
+    void inputStudentData() {
         cout << "Name: ";
         cin.ignore();
         getline(cin, name);
 
-        while (true)
-        {
+        while (true) {
             cout << "Srcode: ";
             string input;
-            if (getline(cin, input))
-            {
+            if (getline(cin, input)) {
                 stringstream ss(input);
-                if (ss >> srcode)
-                {
+                if (ss >> srcode) {
                     break;
                 }
             }
@@ -37,140 +35,155 @@ public:
         }
 
         cout << "Number of Subjects: ";
-        for (;;)
-        {
+        for (;;) {
             string input;
-            if (getline(cin, input))
-            {
+            if (getline(cin, input)) {
                 stringstream ss(input);
-                if (ss >> numSubjects && numSubjects >= 0 && numSubjects <= MAX_SUBJECTS)
-                {
+                if (ss >> numSubjects && numSubjects >= 0 && numSubjects <= MAX_SUBJECTS) {
                     break;
                 }
             }
-            cout << "Error:Invalid input!\n";
+            cout << "Error: Invalid input!\n";
             cout << "Number of Subjects: ";
         }
 
         cout << "Subjects:\n";
-        for (int i = 0; i < numSubjects; ++i)
-        {
+        for (int i = 0; i < numSubjects; ++i) {
             cout << "Subject " << i + 1 << ": ";
             getline(cin, subjects[i]);
         }
     }
 
-    void printStudentData() const
-    {
+    void printStudentData() const {
         cout << "Name: " << name << "\n";
         cout << "Srcode: " << srcode << "\n";
-        cout << "Number of Subjects: " << numSubjects << "\n";
-        cout << "Subjects: ";
-        for (int i = 0; i < numSubjects; ++i)
-        {
-            cout << subjects[i] << " ";
+        cout << "Subjects: | ";
+        for (int i = 0; i < numSubjects; ++i) {
+            cout << subjects[i] << " | ";
         }
         cout << "\n\n";
     }
 
-    int getSrcode() const
-    {
+    int getSrcode() const {
         return srcode;
+    }
+
+    Student* getNext() const {
+        return next;
+    }
+
+    void setNext(Student* student) {
+        next = student;
     }
 };
 
-int searchStudentBySrcode(const Student students[], int numStudents, int srcode)
-{
-    for (int i = 0; i < numStudents; ++i)
-    {
-        if (students[i].getSrcode() == srcode)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-int main();
+class LinkedList {
+private:
+    Student* head;
+    int numStudents;
 
-void displayAllStudents(const Student students[], int numStudents)
-{
-    if (numStudents == 0)
-    {
-        cout << "No student data available.\n";
-        main();
+public:
+    LinkedList() : head(nullptr), numStudents(0) {}
+
+    void addStudent() {
+        if (numStudents == MAX_STUDENTS) {
+            cout << "Error: Maximum number of students reached.\n";
+            return;
+        }
+
+        Student* newStudent = new Student();
+        newStudent->inputStudentData();
+        newStudent->setNext(head);
+        head = newStudent;
+        numStudents++;
     }
-    else
-    {
+
+    int searchStudentBySrcode(int srcode) {
+        Student* current = head;
+        int index = 0;
+        while (current) {
+            if (current->getSrcode() == srcode) {
+                return index;
+            }
+            current = current->getNext();
+            index++;
+        }
+        return -1;
+    }
+
+    void displayAllStudents() {
         cout << "\nStudent's Data\n";
-        for (int i = 0; i < numStudents; ++i)
-        {
-            cout << "Student " << i + 1 << ":\n";
-            students[i].printStudentData();
+        Student* current = head;
+        int index = 1;
+        while (current) {
+            cout << "Student " << index << ":\n";
+            current->printStudentData();
+            current = current->getNext();
+            index++;
         }
     }
-}
 
-void searchStudentInfo(const Student students[], int numStudents)
-{
+    void searchStudentInfo() {
+        char choice;
+        int searchSrcode;
+        if (numStudents == 0) {
+            cout << "No student data available.\n";
+            return;
+        }
+        else
+        displayAllStudents();
 
-    char choice;
-    int searchSrcode;
-    displayAllStudents(students, numStudents);
-    while (true)
-    {
-        string input;
-        if (getline(cin, input))
-        {
-            stringstream ss(input);
-            if (ss >> searchSrcode)
-            {
-                break;
+        while (true) {
+            string input;
+            if (getline(cin, input)) {
+                stringstream ss(input);
+                if (ss >> searchSrcode) {
+                    break;
+                }
+            }
+            cout << "Search Srcode: ";
+        }
+
+        int foundIndex = searchStudentBySrcode(searchSrcode);
+        if (foundIndex != -1) {
+            cout << "\nStudent found!\n";
+            cout << "Student Information:\n";
+            Student* current = head;
+            for (int i = 0; i < foundIndex; ++i) {
+                current = current->getNext();
+            }
+            current->printStudentData();
+
+            cout << "Search another Srcode? (y/n): ";
+            cin >> choice;
+            if (choice == 'y' || choice == 'Y') {
+                searchStudentInfo();
+            }
+        } else {
+            cout << "Srcode: " << searchSrcode << " not found.\n";
+            cout << "Search another Srcode? (y/n): ";
+            cin >> choice;
+            if (choice == 'y' || choice == 'Y') {
+                searchStudentInfo();
             }
         }
-        cout << "Search Sr-Code: ";
     }
 
-    int foundIndex = searchStudentBySrcode(students, numStudents, searchSrcode);
-    if (foundIndex != -1)
-    {
-        cout << "\nStudent found!\n";
-        cout << "Student Information:\n";
-        students[foundIndex].printStudentData();
-        cout << "Search another Sr-Code? (y/n): ";
-        cin >> choice;
-        if (choice == 'y' || choice == 'Y')
-        {
-            searchStudentInfo(students, numStudents);
-        }
-        if (choice == 'n' || choice == 'N')
-        {
-            main();
+    ~LinkedList() {
+        Student* current = head;
+        while (current) {
+            Student* next = current->getNext();
+            delete current;
+            current = next;
         }
     }
-    else
-    {
-        cout << "Sr-Code: " << searchSrcode << " not found.\n";
-        cout << "Search another Sr-Code? (y/n): ";
-        cin >> choice;
-        if (choice == 'y' || choice == 'Y')
-        {
-            searchStudentInfo(students, numStudents);
-        }
-        if (choice == 'n' || choice == 'N')
-        {
-            main();
-        }
-    }
-}
+};
 
-int main()
-{
-    Student students[MAX_STUDENTS];
-    int numStudents = 0;
-
+int main() {
+    LinkedList studentList;
     char choice;
-    do
-    {
+
+    do {
         cout << "Menu:\n";
         cout << "1. Add student\n";
         cout << "2. Search student\n";
@@ -178,43 +191,30 @@ int main()
         cout << "Enter your choice: ";
         cin >> choice;
 
-        switch (choice)
-        {
-        case '1':
-            if (numStudents == MAX_STUDENTS)
-            {
-                cout << "Error: Maximum number of students reached.\n";
+        switch (choice) {
+            case '1':
+                studentList.addStudent();
                 break;
-            }
-            students[numStudents].inputStudentData();
-            numStudents++;
-            break;
 
-        case '2':
-            searchStudentInfo(students, numStudents);
-            break;
+            case '2':
+                studentList.searchStudentInfo();
+                break;
 
-        case '3':
-            cout << "Do you want to exit? (y/n): ";
-            cin >> choice;
-            if (choice == 'y' || choice == 'Y')
-            {
-                exit(0);
-            }
-            break;
+            case '3':
+                cout << "Do you want to exit? (y/n): ";
+                cin >> choice;
+                if (choice == 'y' || choice == 'Y') {
+                    return 0;
+                }
+                break;
 
-        default:
-            cout << "Invalid choice! Please enter a valid option.\n";
-            break;
+            default:
+                cout << "Invalid choice! Please enter a valid option.\n";
+                break;
         }
     } while (choice != '3');
 
-    cout << "\nStudent's Data\n";
-    for (int i = 0; i < numStudents; ++i)
-    {
-        cout << "Student " << i + 1 << ":\n";
-        students[i].printStudentData();
-    }
+    studentList.displayAllStudents();
 
     return 0;
 }
